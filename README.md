@@ -21,3 +21,9 @@ Project for learning Rest Framework with PyE-242 group
 
 ### Для начала зависимости:
 pip install djangorestframework djangorestframework-simplejwt python-decouple django-debug-toolbar
+
+### Что нужно для Rest API
+- models
+- views
+- serializators
+- routers
