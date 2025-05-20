@@ -10,6 +10,7 @@ Project for learning Rest Framework with PyE-242 group
     - daphne
     - redis
     - python-decouple
+    - pillow
 - Dev
     - django-debug-toolbar
 
@@ -20,7 +21,7 @@ Project for learning Rest Framework with PyE-242 group
 - Паблики
 
 ### Для начала зависимости:
-pip install djangorestframework djangorestframework-simplejwt python-decouple django-debug-toolbar
+pip install djangorestframework djangorestframework-simplejwt python-decouple django-debug-toolbar pillow
 
 ### Что нужно для Rest API
 - models
