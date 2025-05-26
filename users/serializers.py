@@ -16,7 +16,6 @@ class UserModelSerializer(serializers.ModelSerializer):
         raw_password: str | None = kwargs.get("password")
         if raw_password:
             kwargs["password"] = make_password(password=raw_password)
-        breakpoint()
         return super().save(**kwargs)
 
 

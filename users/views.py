@@ -64,7 +64,6 @@ class UserViewSet(ViewSet):
             data="Not implemented"
         )
         
-
     def retrieve(self, request: Request, pk=None) -> Response:
         try:
             user = User.objects.get(pk=pk)
