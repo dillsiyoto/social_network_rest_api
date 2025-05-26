@@ -9,15 +9,14 @@ class UserModelSerializer(serializers.ModelSerializer):
             "username", "first_name", 
             "last_name", "email", "password"
         ]
-        # exclude = ["username"]
+        # exclude = ["password", "groups", "user_permissions"]
 
 
-# class UserSerializer(serializers.Serializer):
-#     username = serializers.CharField(
-#         required=True,
-#         read_only=True,
-#         max_length=50
-#     )
+class UserSerializer(serializers.Serializer):
+    username = serializers.CharField(
+        required=True,
+        max_length=50
+    )
 
 #     def validate(self, attrs):
 #         if len(attrs) < 8:
