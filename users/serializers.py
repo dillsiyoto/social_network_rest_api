@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
 
 
 class UserModelSerializer(serializers.ModelSerializer):
@@ -10,6 +11,13 @@ class UserModelSerializer(serializers.ModelSerializer):
             "last_name", "email", "password"
         ]
         # exclude = ["password", "groups", "user_permissions"]
+
+    def save(self, **kwargs):
+        raw_password: str | None = kwargs.get("password")
+        if raw_password:
+            kwargs["password"] = make_password(password=raw_password)
+        breakpoint()
+        return super().save(**kwargs)
 
 
 class UserSerializer(serializers.Serializer):

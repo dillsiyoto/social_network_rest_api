@@ -19,9 +19,9 @@ class RegistrationViewSet(ViewSet):
     permission_classes = [AllowAny]
 
     def list(self, request: Request) -> Response:
-        raise APIException(
-            code=status.HTTP_405_METHOD_NOT_ALLOWED,
-            detail="Not implemented",
+        return Response(
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+            data="Not implemented",
         )
 
     def create(self, request: Request) -> Response:
@@ -59,10 +59,11 @@ class UserViewSet(ViewSet):
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     def create(self, request: Request) -> Response:
-        raise APIException(
-            code=status.HTTP_405_METHOD_NOT_ALLOWED,
-            detail="Not implemented"
+        return Response(
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+            data="Not implemented"
         )
+        
 
     def retrieve(self, request: Request, pk=None) -> Response:
         try:
@@ -76,10 +77,20 @@ class UserViewSet(ViewSet):
             )
 
     def update(self, request: Request, pk=None) -> Response:
-        pass
+        serializer = UserModelSerializer(
+            instance=request.user, data=request.data
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save(**serializer.validated_data)
+        return Response(data={"message": "user updated"})
 
     def partial_update(self, request: Request, pk=None) -> Response:
-        pass
+        serializer = UserModelSerializer(
+            instance=request.user, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save(**serializer.validated_data)
+        return Response(data={"message": "user partial updated"})
 
     def destroy(self, request: Request, pk=None) -> Response:
         user: User | None = User.objects.filter(pk=pk).first()
