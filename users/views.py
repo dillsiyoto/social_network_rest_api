@@ -12,7 +12,7 @@ from django.db.models.query import QuerySet
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 
-from users.serializers import UserModelSerializer
+from users.serializers import UserModelSerializer, ChangePasswordSerializer
 
 
 class RegistrationViewSet(ViewSet):
@@ -107,3 +107,27 @@ class UserViewSet(ViewSet):
         return Response(
             data={"message": "user has been deleted"}
         )
+
+
+class ChangePasswordViewSet(ViewSet):
+    queryset = User.objects.all()
+    def partial_update(self, request: Request) -> Response:
+        serializer = ChangePasswordSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"message": "password updated successfully"}, status=200)
+    
+    def list(self, request: Request) -> Response:
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def create(self, request: Request) -> Response:
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def retrieve(self, request: Request, pk=None) -> Response:
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def update(self, request: Request, pk=None) -> Response:
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def destroy(self, request: Request, pk=None) -> Response:
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)

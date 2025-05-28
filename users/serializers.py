@@ -25,6 +25,26 @@ class UserSerializer(serializers.Serializer):
         max_length=50
     )
 
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True, max_length=50)
+    new_password = serializers.CharField(required=True, max_length=50)
+
+    def validate_old_password(self, value):
+        user = self.context["request"].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("wrong password")
+        return value
+    
+    def validate_new_password(self, value):
+        if len(value) < 8:
+            raise serializers.ValidationError("password is too short")
+        return value
+
+    def save(self, **kwargs):
+        user = self.context["request"].user
+        user.set_password(self.validated_data["new_password"])
+        user.save()
+
 #     def validate(self, attrs):
 #         if len(attrs) < 8:
 #             raise ValueError
