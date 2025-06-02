@@ -1,7 +1,7 @@
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import MethodNotAllowed, PermissionDenied
 from rest_framework import status
 from rest_framework.permissions import (
     AllowAny,
@@ -10,6 +10,7 @@ from rest_framework.permissions import (
 )
 from django.db.models.query import QuerySet
 from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404
 from django.contrib.auth.hashers import make_password
 
 from users.serializers import UserModelSerializer
@@ -19,25 +20,24 @@ class RegistrationViewSet(ViewSet):
     permission_classes = [AllowAny]
 
     def list(self, request: Request) -> Response:
-        return Response(
-            status=status.HTTP_405_METHOD_NOT_ALLOWED,
-            data="Not implemented",
-        )
+        raise MethodNotAllowed(method="list") # Можно вообще не писать этот метод
 
     def create(self, request: Request) -> Response:
         s = UserModelSerializer(data=request.data)
         s.is_valid(raise_exception=True)
         try:
-            User.objects.create(
-                username=s.validated_data.get("username"),
-                first_name=s.validated_data.get("first_name"),
-                last_name=s.validated_data.get("last_name"),
-                email=s.validated_data.get("email"),
-                password=make_password(s.validated_data.get("password")),
-            )
+            User.objects.create_user(**s.validated_data)
+            # User.objects.create(
+            #     username=s.validated_data.get("username"),
+            #     first_name=s.validated_data.get("first_name"),
+            #     last_name=s.validated_data.get("last_name"),
+            #     email=s.validated_data.get("email"),
+            #     password=make_password(s.validated_data.get("password")),
+            # )
 
             return Response(
-                data={"message": "success"}, status=status.HTTP_200_OK
+                    data={"message": "User successfully registered"},
+                    status=status.HTTP_201_CREATED # Лучше 201
             )
         except Exception as e:
             return Response(
@@ -51,18 +51,15 @@ class UserViewSet(ViewSet):
     def list(self, request: Request) -> Response:
         queryset = User.objects.all()
         serializer = UserModelSerializer(queryset, many=True)
-        if not serializer.data:
-            return Response(
-                status=status.HTTP_404_NOT_FOUND,
-                data={"error": "users not found"},
-            )
+        # if not serializer.data:
+        #     return Response(
+        #         status=status.HTTP_404_NOT_FOUND,
+        #         data={"error": "users not found"},
+        #     ) # так делать не надо
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     def create(self, request: Request) -> Response:
-        return Response(
-            status=status.HTTP_405_METHOD_NOT_ALLOWED,
-            data="Not implemented"
-        )
+        raise MethodNotAllowed(method="create")
         
     def retrieve(self, request: Request, pk=None) -> Response:
         try:
@@ -92,17 +89,19 @@ class UserViewSet(ViewSet):
         return Response(data={"message": "user partial updated"})
 
     def destroy(self, request: Request, pk=None) -> Response:
-        user: User | None = User.objects.filter(pk=pk).first()
-        if not user:
-            return Response(
-                data={"error": "user not found"},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        if request.user.pk is not user.pk:
-            return Response(
-                data={"message": "you have no power"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        user = get_object_or_404(User, pk=pk)
+        # user: User | None = User.objects.filter(pk=pk).first()
+        # if not user:
+        #     return Response(
+        #         data={"error": "user not found"},
+        #         status=status.HTTP_404_NOT_FOUND
+        #     )
+        if request.user.pk != user.pk:
+            raise PermissionDenied(detail="you have no power here")
+            # return Response(
+            #     data={"message": "you have no power"},
+            #     status=status.HTTP_403_FORBIDDEN # лушче 403
+            # )
         user.delete()
         return Response(
             data={"message": "user has been deleted"}
