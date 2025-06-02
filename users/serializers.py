@@ -41,4 +41,5 @@ class UserSerializer(serializers.Serializer):
     def validate(self, attrs):
         if attrs["username"] == attrs.get("password"):
             raise serializers.ValidationError("Password cannot be the same as username")
+        self.validate_username(value=attrs["username"])
         return attrs

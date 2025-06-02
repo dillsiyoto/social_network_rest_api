@@ -12,7 +12,7 @@ from rest_framework.permissions import (
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 
-from users.serializers import UserModelSerializer
+from users.serializers import UserModelSerializer, UserSerializer
 
 
 class RegistrationViewSet(ViewSet):
@@ -49,7 +49,7 @@ class UserViewSet(ViewSet):
 
     def list(self, request: Request) -> Response:
         queryset = User.objects.all()
-        serializer = UserModelSerializer(queryset, many=True)
+        serializer = UserSerializer(queryset, many=True)
         return Response(
             data=serializer.data, status=status.HTTP_200_OK
         )
@@ -73,7 +73,7 @@ class UserViewSet(ViewSet):
 
     def partial_update(self, request: Request, pk: int) -> Response:
         user = self.check_user(request=request, pk=pk)
-        serializer = UserModelSerializer(
+        serializer = UserSerializer(
             instance=request.user, data=request.data, partial=True
         )
         serializer.is_valid(raise_exception=True)
