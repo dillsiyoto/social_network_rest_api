@@ -12,19 +12,17 @@ class UserModelSerializer(serializers.ModelSerializer):
         ]
         # exclude = ["password", "groups", "user_permissions"]
 
-    # def save(self, **kwargs):
-    #     raw_password: str | None = kwargs.get("password")
-    #     if raw_password:
-    #         kwargs["password"] = make_password(password=raw_password)
-    #     return super().save(**kwargs)
-
     def create(self, validated_data):
-        validated_data["password"] = make_password(validated_data["password"])
+        validated_data["password"] = make_password(
+            validated_data["password"]
+        )
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
         if "password" in validated_data:
-            validated_data["password"] = make_password(validated_data["password"])
+            validated_data["password"] = make_password(
+                validated_data["password"]
+            )
         return super().update(instance, validated_data)
 
 
