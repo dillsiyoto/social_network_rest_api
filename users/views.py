@@ -1,56 +1,21 @@
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
-from rest_framework.exceptions import (
-    MethodNotAllowed, PermissionDenied
-)
+from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework import status
-from rest_framework.permissions import (
-    AllowAny,
-    IsAuthenticated,
-)
+from rest_framework.permissions import AllowAny
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
 
 from users.serializers import UserModelSerializer, UserSerializer
-
-
-class RegistrationViewSet(ViewSet):
-    permission_classes = [AllowAny]
-
-    @swagger_auto_schema(
-        responses={403: "Method not allowed"}
-    )
-    def list(self, request: Request) -> Response:
-        raise MethodNotAllowed(method="list") # Можно вообще не писать этот метод
-
-    @swagger_auto_schema(
-        request_body=UserModelSerializer,
-        responses={
-            201: "User successfully registered",
-            400: "error",
-            409: "conflict error"
-        }
-    )
-    def create(self, request: Request) -> Response:
-        s = UserModelSerializer(data=request.data)
-        s.is_valid(raise_exception=True)
-        try:
-            User.objects.create_user(**s.validated_data)
-            return Response(
-                data={"message": "User successfully registered"},
-                status=status.HTTP_201_CREATED # Лучше 201
-            )
-        except Exception as e:
-            return Response(
-                data={"error": str(e)}, 
-                status=status.HTTP_409_CONFLICT
-            )
+from users.models import Codes
 
 
 class UserViewSet(ViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     @staticmethod
     def check_user(request: Request, pk: int) -> User:
@@ -58,6 +23,25 @@ class UserViewSet(ViewSet):
         if request.user.pk != user.pk:
             raise PermissionDenied(detail="you have no power here")
         return user
+
+    @action(
+        detail=True, methods=["GET"],
+        url_path="activate",
+        url_name="activate"
+    )
+    def activation_page(
+        self, request: Request, pk: int
+    ) -> Response:
+        user = get_object_or_404(User, pk=pk)
+        code = request.query_params.get("code")
+        obj: Codes = get_object_or_404(Codes, user=user, code=code)
+        now = timezone.now()
+        diff = now - obj.created_at
+        if diff.seconds > 180:
+            raise PermissionDenied()
+        user.is_active = True
+        user.save()
+        return Response(data={"message": "activation success!"})
 
     @swagger_auto_schema(
         responses={200: UserSerializer(many=True)}
@@ -70,12 +54,32 @@ class UserViewSet(ViewSet):
         )
 
     @swagger_auto_schema(
-        request_body=None,
-        responses={403: "Method not allowed"}
+        request_body=UserModelSerializer,
+        responses={
+            201: "User successfully registered",
+            400: "error",
+            409: "conflict error"
+        }
     )
     def create(self, request: Request) -> Response:
-        raise MethodNotAllowed(method="create")
-        
+        s = UserModelSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        s.validated_data["is_active"] = False
+        try:
+            user = User.objects.create_user(**s.validated_data)
+            code = Codes(user=user)
+            code.save()
+            # отправка письма с кодом активации
+            return Response(
+                data={"message": "User successfully registered"},
+                status=status.HTTP_201_CREATED # Лучше 201
+            )
+        except Exception as e:
+            return Response(
+                data={"error": str(e)},
+                status=status.HTTP_409_CONFLICT
+            )
+
     @swagger_auto_schema(
         responses={
             200: UserSerializer,
@@ -99,7 +103,7 @@ class UserViewSet(ViewSet):
     def update(self, request: Request, pk: int) -> Response:
         user = self.check_user(request=request, pk=pk)
         serializer = UserModelSerializer(
-            instance=request.user, data=request.data
+            instance=user, data=request.data
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -117,7 +121,7 @@ class UserViewSet(ViewSet):
     def partial_update(self, request: Request, pk: int) -> Response:
         user = self.check_user(request=request, pk=pk)
         serializer = UserModelSerializer(
-            instance=request.user, data=request.data, partial=True
+            instance=user, data=request.data, partial=True
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()

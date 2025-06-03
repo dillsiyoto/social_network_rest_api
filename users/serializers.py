@@ -16,6 +16,7 @@ class UserModelSerializer(serializers.ModelSerializer):
         validated_data["password"] = make_password(
             validated_data["password"]
         )
+        validated_data["is_active"] = False
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
