@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from users.serializers import UserModelSerializer, UserSerializer
 from users.models import Codes
