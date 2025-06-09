@@ -3,8 +3,9 @@ import os
 
 from decouple import config
 
-
 BASE_DIR = Path(__file__).resolve().parent.parent
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 SECRET_KEY = config("SECRET_KEY")
 
