@@ -10,6 +10,7 @@ from rest_framework_simplejwt.views import (
 )
 
 from users.views import RegistrationViewSet, UserViewSet
+from chats.views import ChatsViewSet
 
 
 router = DefaultRouter()
@@ -20,6 +21,10 @@ router.register(
 router.register(
     prefix="users", viewset=UserViewSet,
     basename="users"
+)
+router.register(
+    prefix="chats", viewset=ChatsViewSet,
+    basename="chats"
 )
 
 schema_view = get_schema_view(
@@ -36,9 +41,16 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    path("api/v1/", include(router.urls)),
-    path("swagger/", schema_view.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui"),
+    path(route="admin/", view=admin.site.urls),
+    path(route="api/token/",
+         view=TokenObtainPairView.as_view(), name="token_obtain_pair"
+    ),
+    path(route="api/token/refresh/",
+         view=TokenRefreshView.as_view(), name="token_refresh"
+    ),
+    path(route="api/v1/", view=include(router.urls)),
+    path(route="swagger/",
+         view=schema_view.with_ui("swagger", cache_timeout=0),
+         name="schema-swagger-ui"
+    ),
 ]
