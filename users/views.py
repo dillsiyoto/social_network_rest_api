@@ -4,7 +4,7 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -15,8 +15,40 @@ from users.serializers import UserModelSerializer, UserSerializer
 from users.models import Codes
 
 
-class UserViewSet(ViewSet):
+class RegistrationViewSet(ViewSet):
     permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        request_body=UserModelSerializer,
+        responses={
+            201: "User successfully registered",
+            400: "error",
+            409: "conflict error"
+        }
+    )
+    def create(self, request: Request) -> Response:
+        s = UserModelSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        s.validated_data["is_active"] = False
+        try:
+            user = User.objects.create_user(**s.validated_data)
+            code = Codes(user=user)
+            code.save()
+            # отправка письма с кодом активации
+            return Response(
+                data={"message": "User successfully registered"},
+                status=status.HTTP_201_CREATED # Лучше 201
+            )
+        except Exception as e:
+            return Response(
+                data={"error": str(e)},
+                status=status.HTTP_409_CONFLICT
+            )
+
+
+class UserViewSet(ViewSet):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     @staticmethod
     def check_user(request: Request, pk: int) -> User:
@@ -54,32 +86,6 @@ class UserViewSet(ViewSet):
             data=serializer.data, status=status.HTTP_200_OK
         )
 
-    @swagger_auto_schema(
-        request_body=UserModelSerializer,
-        responses={
-            201: "User successfully registered",
-            400: "error",
-            409: "conflict error"
-        }
-    )
-    def create(self, request: Request) -> Response:
-        s = UserModelSerializer(data=request.data)
-        s.is_valid(raise_exception=True)
-        s.validated_data["is_active"] = False
-        try:
-            user = User.objects.create_user(**s.validated_data)
-            code = Codes(user=user)
-            code.save()
-            # отправка письма с кодом активации
-            return Response(
-                data={"message": "User successfully registered"},
-                status=status.HTTP_201_CREATED # Лучше 201
-            )
-        except Exception as e:
-            return Response(
-                data={"error": str(e)},
-                status=status.HTTP_409_CONFLICT
-            )
 
     @swagger_auto_schema(
         responses={

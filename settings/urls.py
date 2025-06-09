@@ -9,12 +9,16 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from users.views import UserViewSet
+from users.views import RegistrationViewSet, UserViewSet
 
 
 router = DefaultRouter()
 router.register(
-    prefix="users", viewset=UserViewSet, 
+    prefix="registration", viewset=RegistrationViewSet, 
+    basename="registration"
+)
+router.register(
+    prefix="users", viewset=UserViewSet,
     basename="users"
 )
 
@@ -36,7 +40,5 @@ urlpatterns = [
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/v1/", include(router.urls)),
-    path("swagger<format>/", schema_view.without_ui(cache_timeout=0), name="schema-json"),
     path("swagger/", schema_view.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui"),
-    path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
 ]

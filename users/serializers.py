@@ -10,7 +10,6 @@ class UserModelSerializer(serializers.ModelSerializer):
             "username", "first_name", 
             "last_name", "email", "password"
         ]
-        # exclude = ["password", "groups", "user_permissions"]
 
     def create(self, validated_data):
         validated_data["password"] = make_password(
