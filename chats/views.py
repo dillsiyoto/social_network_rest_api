@@ -1,7 +1,6 @@
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
-from rest_framework.exceptions import PermissionDenied
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
@@ -28,15 +27,16 @@ class ChatsViewSet(ViewSet):
     @swagger_auto_schema(
         request_body=ChatSerializer,
         responses={
-            201: ChatSerializer,
+            201: ChatViewSerializer,
             400: "bad request"
         }
     )
     def create(self, request: Request) -> Response:
         serializer = ChatSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(data="created")
+        chat = serializer.save()
+        response_serializer = ChatViewSerializer(instance=chat)
+        return Response(data=response_serializer.data)
 
     @swagger_auto_schema(
         responses={
@@ -69,8 +69,19 @@ class ChatsViewSet(ViewSet):
         serializer.save()
         return Response(data="chat updated", status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        request_body=ChatSerializer,
+        responses={
+            200: "chat updated",
+            404: "bad request"
+        }
+    )
     def partial_update(self, request: Request, pk: int) -> Response:
-        pass
+        chat: Chat = get_object_or_404(Chat, pk=pk, users=request.user)
+        serializer = ChatSerializer(instance=chat, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(data="chat updated", status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         responses={
