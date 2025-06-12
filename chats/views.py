@@ -11,28 +11,37 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from chats.models import Chat, Message
-from chats.serializers import ChatSerializer, ChatQuerySerializer
-
+from chats.serializers import ChatSerializer, ChatViewSerializer
 
 class ChatsViewSet(ViewSet):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
     @swagger_auto_schema(responses={
-        200: ChatSerializer(many=True)
+        200: ChatViewSerializer(many=True)
     })
     def list(self, request: Request) -> Response:
         chats: QuerySet[Chat] = request.user.users_chats.all()
-        serializer = ChatSerializer(instance=chats, many=True)
+        serializer = ChatViewSerializer(instance=chats, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        request_body=ChatSerializer,
+        responses={
+            201: ChatSerializer,
+            400: "bad request"
+        }
+    )
     def create(self, request: Request) -> Response:
-        pass
+        serializer = ChatSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(data="created")
 
     @swagger_auto_schema(
-        query_serializer=ChatQuerySerializer,
         responses={
-            200: ChatSerializer
+            200: ChatViewSerializer,
+            404: "chat not exist"
         }
     )
     def retrieve(self, request: Request, pk: int) -> Response:
@@ -43,17 +52,36 @@ class ChatsViewSet(ViewSet):
                 data="chat not exist",
                 status=status.HTTP_404_NOT_FOUND
             )
-        serializer = ChatSerializer(instance=chat)
-        return Response(data=serializer.data)
+        serializer = ChatViewSerializer(instance=chat)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        request_body=ChatSerializer,
+        responses={
+            200: "chat updated",
+            404: "bad request"
+        }
+    )
     def update(self, request: Request, pk: int) -> Response:
-        pass
+        chat: Chat = get_object_or_404(Chat, pk=pk, users=request.user)
+        serializer = ChatSerializer(instance=chat, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(data="chat updated", status=status.HTTP_200_OK)
 
     def partial_update(self, request: Request, pk: int) -> Response:
         pass
 
+    @swagger_auto_schema(
+        responses={
+            200: "chat was removed",
+            404: "chat not found"
+        }
+    )
     def destroy(self, request: Request, pk: int) -> Response:
-        pass
+        chat: Chat = get_object_or_404(Chat, pk=pk, users=request.user)
+        chat.delete()
+        return Response(data="chat was removed", status=status.HTTP_200_OK)
 
 
 class MessagesViewSet(ViewSet):
