@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from chats.utils import encrypt_message, decrypt_message
 from chats.models import Chat, Message
 from users.serializers import UserSerializer
 
@@ -32,3 +33,17 @@ class ChatSerializer(serializers.Serializer):
         if users:
             instance.users.set(users)
         return super().update(instance, validated_data)
+
+
+class MessageViewSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    text = serializers.CharField(max_length=2000)
+    chat = serializers.IntegerField()
+    parent = serializers.IntegerField(required=False)
+    sender = UserSerializer()
+
+
+class MessageSerializer(serializers.Serializer):
+    text = serializers.CharField(max_length=2000)
+    chat = serializers.IntegerField()
+    parent = serializers.IntegerField(required=False)
