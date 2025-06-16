@@ -10,7 +10,7 @@ from rest_framework_simplejwt.views import (
 )
 
 from users.views import RegistrationViewSet, UserViewSet
-from chats.views import ChatsViewSet
+from chats.views import ChatsViewSet, MessagesViewSet
 
 
 router = DefaultRouter()
@@ -25,6 +25,10 @@ router.register(
 router.register(
     prefix="chats", viewset=ChatsViewSet,
     basename="chats"
+)
+router.register(
+    prefix="messages", viewset=MessagesViewSet,
+    basename="messages"
 )
 
 schema_view = get_schema_view(

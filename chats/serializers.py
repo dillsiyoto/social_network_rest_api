@@ -5,13 +5,6 @@ from chats.models import Chat, Message
 from users.serializers import UserSerializer
 
 
-class ChatViewSerializer(serializers.Serializer):
-    id = serializers.IntegerField(read_only=True)
-    is_group = serializers.BooleanField()
-    title = serializers.CharField(max_length=100)
-    users = UserSerializer(many=True)
-
-
 class ChatSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     is_group = serializers.BooleanField()
@@ -37,13 +30,41 @@ class ChatSerializer(serializers.Serializer):
 
 class MessageViewSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
-    text = serializers.CharField(max_length=2000)
-    chat = serializers.IntegerField()
+    text = serializers.SerializerMethodField(
+        method_name="get_decrypted_message"
+    )
     parent = serializers.IntegerField(required=False)
     sender = UserSerializer()
+
+    def get_decrypted_message(self, obj: Message):
+        return decrypt_message(encrypted_text=obj.text)
+
+
+class ChatViewSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    is_group = serializers.BooleanField()
+    title = serializers.CharField(max_length=100)
+    users = UserSerializer(many=True)
+    messages = MessageViewSerializer(many=True)
 
 
 class MessageSerializer(serializers.Serializer):
     text = serializers.CharField(max_length=2000)
     chat = serializers.IntegerField()
     parent = serializers.IntegerField(required=False)
+
+    def create(self, validated_data: dict):
+        validated_data["sender"] = self.context.get("user")
+        validated_data["chat"] = self.context.get("chat")
+        validated_data["text"] = encrypt_message(
+            text=validated_data.get("text")
+        )
+        message = Message(**validated_data)
+        message.save()
+        return message
+
+    def update(self, instance: Message, validated_data: dict):
+        validated_data["text"] = encrypt_message(
+            text=validated_data.get("text")
+        )
+        return super().update(instance, validated_data)

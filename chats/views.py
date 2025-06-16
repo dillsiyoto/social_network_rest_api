@@ -1,5 +1,6 @@
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.viewsets import ViewSet
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -10,7 +11,12 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from chats.models import Chat, Message
-from chats.serializers import ChatSerializer, ChatViewSerializer
+from chats.serializers import (
+    ChatSerializer, ChatViewSerializer,
+    MessageViewSerializer, MessageSerializer,
+)
+from chats.utils import encrypt_message, decrypt_message
+
 
 class ChatsViewSet(ViewSet):
     permission_classes = [IsAuthenticated]
@@ -99,20 +105,81 @@ class MessagesViewSet(ViewSet):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
-    def list(self, request: Request) -> Response:
-        pass
-
+    @swagger_auto_schema(
+        request_body=MessageSerializer,
+        responses={
+            200: MessageViewSerializer,
+            400: "bad request"
+        }
+    )
     def create(self, request: Request) -> Response:
-        pass
+        chat = get_object_or_404(Chat, pk=request.data.get("chat"))
+        serializer = MessageSerializer(
+            data=request.data, context={
+                "user": request.user,
+                "chat": chat
+            }
+        )
+        serializer.is_valid(raise_exception=True)
+        message = serializer.save()
+        response_serializer = MessageViewSerializer(
+            instance=message
+        )
+        return Response(data=response_serializer.data)
 
+    @swagger_auto_schema(
+        responses={
+            200: MessageViewSerializer,
+            403: "wtf is going on",
+            404: "not found"
+        }
+    )
     def retrieve(self, request: Request, pk: int) -> Response:
-        pass
+        message = get_object_or_404(
+            Message, pk=pk, sender=request.user
+        )
+        serializer = MessageViewSerializer(instance=message)
+        return Response(data=serializer.data)
 
-    def update(self, request: Request, pk: int) -> Response:
-        pass
-
+    @swagger_auto_schema(
+        request_body=MessageSerializer(partial=True),
+        responses={
+            200: MessageViewSerializer,
+            400: "bad request",
+            403: "wtf is going on",
+            404: "not found"
+        }
+    )
     def partial_update(self, request: Request, pk: int) -> Response:
-        pass
+        message = get_object_or_404(
+            Message, pk=pk, sender=request.user
+        )
+        if message.chat.pk != request.data.get("chat"):
+            raise PermissionDenied(detail="wtf is going on!?")
+        serializer = MessageSerializer(
+            instance=message, data=request.data,
+            partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        new_message = serializer.save()
+        response_serializer = MessageViewSerializer(
+            instance=new_message
+        )
+        return Response(data=response_serializer.data)
 
+    @swagger_auto_schema(
+        responses={
+            200: "message has been deleted!",
+            400: "bad request",
+            403: "wtf is going on",
+            404: "not found"
+        }
+    )
     def destroy(self, request: Request, pk: int) -> Response:
-        pass
+        message = get_object_or_404(
+            Message, pk=pk, sender=request.user
+        )
+        if message.chat.pk != request.data.get("chat"):
+            raise PermissionDenied(detail="wtf is going on!?")
+        message.delete()
+        return Response(data="message has been deleted!")

@@ -28,6 +28,6 @@ def decrypt_message(encrypted_text: str) -> str:
     key = read_keys_from_file(file="private")
     private_key: rsa.PrivateKey = \
         rsa.PrivateKey.load_pkcs1(key.encode("utf-8"))
-    message: bytes = bytes.fromhex(encrypt_message(encrypted_text))
+    message: bytes = bytes.fromhex(encrypted_text)
     decrypted: bytes = rsa.decrypt(message, private_key)
     return decrypted.decode("utf-8")
