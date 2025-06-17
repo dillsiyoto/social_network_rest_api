@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "drf_yasg",
     "rest_framework",
+    "publics.apps.PublicsConfig",
     "images.apps.ImagesConfig",
     "users.apps.UsersConfig",
     "chats.apps.ChatsConfig",

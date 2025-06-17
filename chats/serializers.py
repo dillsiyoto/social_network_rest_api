@@ -45,7 +45,7 @@ class ChatViewSerializer(serializers.Serializer):
     is_group = serializers.BooleanField()
     title = serializers.CharField(max_length=100)
     users = UserSerializer(many=True)
-    messages = MessageViewSerializer(many=True)
+    chat_messages = MessageViewSerializer(many=True)
 
 
 class MessageSerializer(serializers.Serializer):

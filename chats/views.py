@@ -177,7 +177,5 @@ class MessagesViewSet(ViewSet):
         message = get_object_or_404(
             Message, pk=pk, sender=request.user
         )
-        if message.chat.pk != request.data.get("chat"):
-            raise PermissionDenied(detail="wtf is going on!?")
         message.delete()
         return Response(data="message has been deleted!")
