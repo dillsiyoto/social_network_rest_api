@@ -6,6 +6,7 @@ class ChatConsumer(WebsocketConsumer):
 
     def connect(self):
         async_to_sync(self.channel_layer.group_add)("chat", self.channel_name)
+        self.accept()
 
     def disconnect(self, close_code):
         async_to_sync(self.channel_layer.group_discard)("chat", self.channel_name)

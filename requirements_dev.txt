@@ -13,6 +13,8 @@ django-debug-toolbar==5.2.0
 djangorestframework==3.16.0
 djangorestframework_simplejwt==5.5.0
 drf-yasg==1.21.10
+gevent==25.5.1
+greenlet==3.2.3
 hyperlink==21.0.0
 idna==3.10
 incremental==24.7.2
@@ -38,4 +40,6 @@ txaio==23.1.1
 typing_extensions==4.14.0
 tzdata==2025.2
 uritemplate==4.2.0
+websockets==15.0.1
+zope.event==5.0
 zope.interface==7.2
