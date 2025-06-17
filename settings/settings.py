@@ -14,6 +14,7 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
+    "daphne",
     "rest_framework_simplejwt",
     "drf_yasg",
     "rest_framework",
@@ -56,12 +57,22 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "settings.wsgi.application"
+ASGI_APPLICATION = "settings.asgi.application"
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
     }
+}
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
 }
 
 REST_FRAMEWORK = {
