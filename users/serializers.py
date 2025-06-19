@@ -57,3 +57,5 @@ class UserSerializer(serializers.Serializer):
                 validated_data["password"]
             )
         return super().update(instance, validated_data)
+
+
