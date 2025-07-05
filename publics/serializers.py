@@ -32,3 +32,10 @@ class PublicSerializer(serializers.Serializer):
     
     def update(self, instance: Public, validated_data: dict):
         return super().update(instance, validated_data)
+
+
+class PublicInviteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PublicInvite
+        fields = "__all__"
+        read_only_fields = ("invited_by", "created_at", "accepted")

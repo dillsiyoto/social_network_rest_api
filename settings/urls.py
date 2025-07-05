@@ -11,6 +11,8 @@ from rest_framework_simplejwt.views import (
 
 from users.views import RegistrationViewSet, UserViewSet
 from chats.views import ChatsViewSet, MessagesViewSet
+from publics.views import PublicViewSet, PublicInviteViewSet
+
 
 
 router = DefaultRouter()
@@ -29,6 +31,14 @@ router.register(
 router.register(
     prefix="messages", viewset=MessagesViewSet,
     basename="messages"
+)
+router.register(
+    prefix="publics", viewset=PublicViewSet,
+    basename="publics"
+)
+router.register(
+    prefix="invites", viewset=PublicInviteViewSet,  
+    basename="invites"
 )
 
 schema_view = get_schema_view(

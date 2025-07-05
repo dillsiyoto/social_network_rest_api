@@ -1,0 +1,104 @@
+[
+{
+  "model": "publics.public",
+  "pk": 1,
+  "fields": {
+    "owner": 7,
+    "title": "Public_1",
+    "is_private": true,
+    "date_created": "2025-07-05T13:04:19.304Z",
+    "members": [
+      13,
+      14,
+      32
+    ]
+  }
+},
+{
+  "model": "publics.public",
+  "pk": 2,
+  "fields": {
+    "owner": 8,
+    "title": "Public_2",
+    "is_private": false,
+    "date_created": "2025-07-05T13:04:19.304Z",
+    "members": [
+      17,
+      20,
+      21,
+      37
+    ]
+  }
+},
+{
+  "model": "publics.public",
+  "pk": 3,
+  "fields": {
+    "owner": 9,
+    "title": "Public_3",
+    "is_private": false,
+    "date_created": "2025-07-05T13:04:19.304Z",
+    "members": [
+      21,
+      25
+    ]
+  }
+},
+{
+  "model": "publics.public",
+  "pk": 4,
+  "fields": {
+    "owner": 35,
+    "title": "Public_4",
+    "is_private": true,
+    "date_created": "2025-07-05T13:04:19.304Z",
+    "members": [
+      38
+    ]
+  }
+},
+{
+  "model": "publics.public",
+  "pk": 5,
+  "fields": {
+    "owner": 10,
+    "title": "Public_5",
+    "is_private": true,
+    "date_created": "2025-07-05T13:04:19.304Z",
+    "members": [
+      14,
+      15
+    ]
+  }
+},
+{
+  "model": "publics.public",
+  "pk": 6,
+  "fields": {
+    "owner": 11,
+    "title": "Public_6",
+    "is_private": false,
+    "date_created": "2025-07-05T13:04:19.304Z",
+    "members": [
+      14,
+      15,
+      29,
+      31,
+      32
+    ]
+  }
+},
+{
+  "model": "publics.public",
+  "pk": 7,
+  "fields": {
+    "owner": 21,
+    "title": "Public_7",
+    "is_private": false,
+    "date_created": "2025-07-05T13:04:19.304Z",
+    "members": [
+      24
+    ]
+  }
+}
+]
