@@ -35,7 +35,7 @@ class PublicViewSet(ViewSet):
         )
         return Response(data=serializer.data)
 
-    @method_decorator(cache_page(timeout=600))
+    @method_decorator(cache_page(timeout=60*10))
     def retrieve(self, request: Request, pk: int) -> Response:
         # public: Public = get_object_or_404(
         #     Public, pk=pk, members=request.user

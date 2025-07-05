@@ -8,6 +8,8 @@ from django.shortcuts import get_object_or_404
 from django.db.models import QuerySet
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
 
 from chats.models import Chat, Message
 from chats.serializers import (
@@ -20,6 +22,7 @@ class ChatsViewSet(ViewSet):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
+    @method_decorator(cache_page(60*10))
     @swagger_auto_schema(responses={
         200: ChatViewSerializer(many=True)
     })
@@ -42,6 +45,7 @@ class ChatsViewSet(ViewSet):
         response_serializer = ChatViewSerializer(instance=chat)
         return Response(data=response_serializer.data)
 
+    @method_decorator(cache_page(60*10))
     @swagger_auto_schema(
         responses={
             200: ChatViewSerializer,
@@ -125,6 +129,7 @@ class MessagesViewSet(ViewSet):
         )
         return Response(data=response_serializer.data)
 
+    @method_decorator(cache_page(60*10))
     @swagger_auto_schema(
         responses={
             200: MessageViewSerializer,

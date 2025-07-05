@@ -10,6 +10,8 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
 
 from users.serializers import UserModelSerializer, UserSerializer
 from users.models import Codes
@@ -76,6 +78,7 @@ class UserViewSet(ViewSet):
         user.save()
         return Response(data={"message": "activation success!"})
 
+    @method_decorator(cache_page(60*10))
     @swagger_auto_schema(
         responses={200: UserSerializer(many=True)}
     )
@@ -86,7 +89,7 @@ class UserViewSet(ViewSet):
             data=serializer.data, status=status.HTTP_200_OK
         )
 
-
+    @method_decorator(cache_page(60*10))
     @swagger_auto_schema(
         responses={
             200: UserSerializer,
