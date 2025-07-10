@@ -5,10 +5,14 @@ from users.serializers import UserSerializer
 
 
 class PublicSerializer(serializers.Serializer):
-    owner = serializers.IntegerField(required=True)
     title = serializers.CharField(max_length=200)
     is_private = serializers.BooleanField(default=False)
     members = serializers.ListField(
+        required=False,
+        child=serializers.IntegerField()
+    )
+    delete_members = serializers.ListField(
+        required=False,
         child=serializers.IntegerField()
     )
 
@@ -22,16 +26,33 @@ class PublicSerializer(serializers.Serializer):
 
     def create(self, validated_data: dict):
         public = Public(
-            owner=validated_data.get("owner"),
+            owner=self.context.get("owner"),
             title=validated_data.get("title"),
-            is_group=validated_data.get("is_group")
+            is_private=validated_data.get("is_private")
         )
         public.save()
         public.members.set(objs=validated_data.get("members"))
         return public
     
     def update(self, instance: Public, validated_data: dict):
-        return super().update(instance, validated_data)
+        for key, value in validated_data.items():
+            if key == "delete_members":
+                instance.members.remove(*value)
+                continue
+            elif key == "members":
+                instance.members.add(*value)
+                continue
+            setattr(instance, key, value)
+        instance.save()
+        return instance
+
+
+class PublicViewSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    title = serializers.CharField(read_only=True, max_length=200)
+    owner = UserSerializer()
+    members = UserSerializer(many=True)
+    is_private = serializers.BooleanField(read_only=True)
 
 
 class PublicInviteSerializer(serializers.ModelSerializer):

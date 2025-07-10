@@ -27,3 +27,22 @@ class Codes(models.Model):
 
     def __str__(self):
         return f"{self.user.username} | {self.created_at}"
+
+class LoginRecord(models.Model):
+    user = models.ForeignKey(
+        to=User, 
+        on_delete=models.CASCADE, 
+        related_name="login_records"
+    )
+    ip_address = models.GenericIPAddressField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    confirmed = models.BooleanField(default=False)
+
+    confirmation_code = models.CharField(
+        max_length=64,
+        default="",
+        blank=True
+    )
+
+    def __str__(self):
+        return f"{self.user.username} - {self.ip_address}"

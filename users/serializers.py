@@ -2,6 +2,8 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 
+from users.models import LoginRecord
+
 
 class UserModelSerializer(serializers.ModelSerializer):
     class Meta:
@@ -59,3 +61,36 @@ class UserSerializer(serializers.Serializer):
         return super().update(instance, validated_data)
 
 
+class LoginConfirmationSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    ip_address = serializers.IPAddressField()
+    code = serializers.CharField()
+
+    def validate(self, data):
+        from django.contrib.auth.models import User
+        from .models import LoginRecord
+
+        try:
+            user = User.objects.get(email=data['email'])
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Пользователь не найден")
+
+        try:
+            login_record = LoginRecord.objects.get(
+                user=user,
+                ip_address=data['ip_address'],
+                confirmed=False
+            )
+        except LoginRecord.DoesNotExist:
+            raise serializers.ValidationError("Запись входа с таким IP не найдена")
+        
+        if not hasattr(login_record, 'confirmation_code'):
+            raise serializers.ValidationError("В записи входа отсутствует код подтверждения")
+
+        if login_record.confirmation_code != data['code']:
+            raise serializers.ValidationError("Неверный код подтверждения")
+
+        login_record.confirmed = True
+        login_record.save()
+
+        return data

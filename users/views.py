@@ -13,7 +13,11 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
 
-from users.serializers import UserModelSerializer, UserSerializer
+from users.serializers import( 
+    UserModelSerializer, 
+    UserSerializer, 
+    LoginConfirmationSerializer
+)
 from users.models import Codes
 
 
@@ -150,3 +154,23 @@ class UserViewSet(ViewSet):
         return Response(
             data={"message": "user has been deleted"}
         )
+
+class UserViewSet(ViewSet):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    @action(
+        detail=False,
+        methods=["post"],
+        permission_classes=[AllowAny],
+        url_path="confirm-ip",
+        url_name="confirm_ip"
+    )
+    def confirm_ip(self, request: Request) -> Response:
+        serializer = LoginConfirmationSerializer(data=request.data)
+        if serializer.is_valid():
+            return Response(
+                data={"message": "IP успешно подтверждён"},
+                status=status.HTTP_200_OK
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
