@@ -1,35 +1,39 @@
-from django.contrib.auth.signals import user_logged_in
+from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.core.mail import send_mail
-from django.utils.timezone import now
-from uuid import uuid4
 
-from .models import LoginRecord
-
-def get_client_ip(request):
-    proxy_ip_header = request.META.get("HTTP_X_FORWARDED_FOR")
-    if proxy_ip_header:
-        client_ip = proxy_ip_header.split(",")[0].strip()
-    else:
-        client_ip = request.META.get("REMOTE_ADDR")
-    return client_ip
+from users.models import Client, FriendInvite
+from users.tasks import ActivateAccountTask
 
 
-@receiver(user_logged_in)
-def check_ip_on_login(sender, request, user, **kwargs):
-    ip = get_client_ip(request)
-    if not LoginRecord.objects.filter(user=user, ip_address=ip).exists():
-        code = uuid4().hex[:6] 
-        LoginRecord.objects.create(
-            user=user,
-            ip_address=ip,
-            confirmed=False,
-            confirmation_code=code
+@receiver(signal=post_save, sender=Client)
+def post_registration(
+    sender: Client, instance: Client, created: bool, **kwargs
+):
+    if instance.is_superuser:
+        return
+
+    if created:
+        ActivateAccountTask.apply_async(
+            kwargs={
+                "pk": instance.pk,
+                "username": instance.username,
+                "email": instance.email,
+                "code": str(instance.activation_code),
+            }
         )
 
-        send_mail(
-            subject="Подозрительный вход",
-            message=f"Обнаружен вход с нового IP: {ip}\nКод подтверждения: {code}",
-            from_email="noreply@yourapp.com",
-            recipient_list=[user.email],
-        )
+
+@receiver(signal=post_save, sender=FriendInvite)
+def remove_invites(
+    instance: FriendInvite, created: bool, **kwargs
+):
+    if not created:
+        if instance.is_accepted:
+            from_client = instance.from_client
+            to_client = instance.to_client
+            from_client.friends.add(to_client)
+            to_client.friends.add(from_client)
+            from_client.save()
+            to_client.save()
+
+        instance.delete()
